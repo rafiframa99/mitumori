@@ -1,0 +1,368 @@
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <title>牧場収益シミュレーター</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@300;400;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary-color: #4a6741;
+            --secondary-color: #7bc950;
+            --background-color: #f4f9f4;
+            --text-color: #333;
+            --card-background: #ffffff;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Noto Sans JP', sans-serif;
+            background-color: var(--background-color);
+            color: var(--text-color);
+            line-height: 1.6;
+        }
+
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        .card {
+            background-color: var(--card-background);
+            border-radius: 12px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            padding: 30px;
+            margin-bottom: 20px;
+        }
+
+        h1 {
+            color: var(--primary-color);
+            text-align: center;
+            margin-bottom: 30px;
+            font-weight: 700;
+        }
+
+        .input-section {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 15px;
+        }
+
+        .input-group {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .input-group label {
+            margin-bottom: 5px;
+            color: var(--primary-color);
+            font-weight: 500;
+        }
+
+        .input-group input {
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 6px;
+            font-size: 16px;
+        }
+
+        .calculate-btn {
+            grid-column: span 2;
+            background-color: var(--secondary-color);
+            color: white;
+            border: none;
+            padding: 12px 20px;
+            border-radius: 8px;
+            font-size: 18px;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+        }
+
+        .calculate-btn:hover {
+            background-color: var(--primary-color);
+        }
+
+        #resultTable {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+            background-color: white;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+
+        #resultTable th {
+            background-color: var(--primary-color);
+            color: white;
+            padding: 12px;
+            text-align: right;
+        }
+
+        #resultTable td {
+            padding: 10px;
+            border: 1px solid #eee;
+            text-align: right;
+        }
+
+        #resultTable tr:nth-child(even) {
+            background-color: #f9f9f9;
+        }
+
+        .summary-section {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 20px;
+        }
+
+        .summary-card {
+            background-color: white;
+            border-radius: 8px;
+            padding: 20px;
+            width: 48%;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+
+        .summary-card h3 {
+            color: var(--primary-color);
+            margin-bottom: 15px;
+        }
+
+        #profitChart {
+            background-color: white;
+            border-radius: 12px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            padding: 20px;
+        }
+
+        @media (max-width: 768px) {
+            .input-section {
+                grid-template-columns: 1fr;
+            }
+
+            .calculate-btn {
+                grid-column: span 1;
+            }
+
+            .summary-section {
+                flex-direction: column;
+            }
+
+            .summary-card {
+                width: 100%;
+                margin-bottom: 15px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🐄 牧場収益シミュレーター</h1>
+
+        <div class="card">
+            <div class="input-section" id="inputSection">
+                <div class="input-group">
+                    <label>搾乳頭数 (頭)</label>
+                    <input type="number" id="milkCows" value="50">
+                </div>
+                <div class="input-group">
+                    <label>1頭あたり牛の購入価格 (円)</label>
+                    <input type="number" id="cowPurchasePrice" value="500000">
+                </div>
+                <div class="input-group">
+                    <label>放牧可能面積 (ha)</label>
+                    <input type="number" id="pastureArea" value="10">
+                </div>
+                <div class="input-group">
+                    <label>給与飼料代 (円/日/頭)</label>
+                    <input type="number" id="feedCost" value="1000">
+                </div>
+                <div class="input-group">
+                    <label>1頭あたり乳量 (L/日)</label>
+                    <input type="number" id="milkVolume" value="30">
+                </div>
+                <div class="input-group">
+                    <label>牧柵設置費用 (円)</label>
+                    <input type="number" id="fenceCost" value="500000">
+                </div>
+                <div class="input-group">
+                    <label>給水設備設置費用 (円)</label>
+                    <input type="number" id="waterSystemCost" value="300000">
+                </div>
+                <div class="input-group">
+                    <label>牛乳販売価格 (円/L)</label>
+                    <input type="number" id="milkPrice" value="100">
+                </div>
+                <div class="input-group">
+                    <label>年間獣医費 (円/頭)</label>
+                    <input type="number" id="vetCost" value="20000">
+                </div>
+                
+                <button class="calculate-btn" onclick="calculateProfits()">収益計算</button>
+            </div>
+        </div>
+
+        <div class="card" id="resultTable" style="display:none;">
+            <h3>年間収益詳細</h3>
+            <table>
+                <thead>
+                    <tr>
+                        <th>年</th>
+                        <th>総収入</th>
+                        <th>総支出</th>
+                        <th>純利益</th>
+                        <th>累積利益</th>
+                    </tr>
+                </thead>
+                <tbody id="resultBody"></tbody>
+            </table>
+        </div>
+
+        <div class="card">
+            <h3>累積利益グラフ</h3>
+            <canvas id="profitChart" style="display:none;"></canvas>
+        </div>
+
+        <div class="summary-section" id="summarySection" style="display:none;">
+            <div class="summary-card">
+                <h3>投資回収期間</h3>
+                <p>約 <span id="paybackPeriod"></span> 年で投資を回収</p>
+            </div>
+            <div class="summary-card">
+                <h3>5年間投資利回り</h3>
+                <p><span id="fiveYearROI"></span>% の収益率</p>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let profitChart;
+
+        function calculateProfits() {
+            // Get input values
+            const milkCows = parseFloat(document.getElementById('milkCows').value);
+            const cowPurchasePrice = parseFloat(document.getElementById('cowPurchasePrice').value);
+            // const pastureArea = parseFloat(document.getElementById('pastureArea').value);
+            const feedCost = parseFloat(document.getElementById('feedCost').value);
+            const milkVolume = parseFloat(document.getElementById('milkVolume').value);
+            const fenceCost = parseFloat(document.getElementById('fenceCost').value);
+            const waterSystemCost = parseFloat(document.getElementById('waterSystemCost').value);
+            const milkPrice = parseFloat(document.getElementById('milkPrice').value);
+            const vetCost = parseFloat(document.getElementById('vetCost').value);
+
+            // Calculate initial investment
+            const cowPurchaseCost = milkCows * cowPurchasePrice;
+            const initialInvestment = cowPurchaseCost + fenceCost + waterSystemCost;
+
+            // Yearly calculations
+            const resultBody = document.getElementById('resultBody');
+            const resultTable = document.getElementById('resultTable');
+            const summarySection = document.getElementById('summarySection');
+            resultBody.innerHTML = '';
+            
+            let cumulativeProfit = -initialInvestment;
+            const yearlyData = {
+                cumulativeProfit: [cumulativeProfit]
+            };
+
+            for (let year = 1; year <= 5; year++) {
+                // Calculate yearly income
+                const yearlyMilk = milkCows * milkVolume * 365 * milkPrice;
+                
+                // Calculate yearly expenses
+                const yearlyFeedCost = milkCows * feedCost * 365;
+                const yearlyVetCost = milkCows * vetCost;
+                const totalYearlyExpense = yearlyFeedCost + yearlyVetCost;
+
+                // Calculate net profit
+                const netProfit = yearlyMilk - totalYearlyExpense;
+                cumulativeProfit += netProfit;
+
+                // Store cumulative profit
+                yearlyData.cumulativeProfit.push(cumulativeProfit);
+
+                // Create table row
+                const row = `
+                    <tr>
+                        <td>${year}</td>
+                        <td>${yearlyMilk.toLocaleString()}円</td>
+                        <td>${totalYearlyExpense.toLocaleString()}円</td>
+                        <td>${netProfit.toLocaleString()}円</td>
+                        <td>${cumulativeProfit.toLocaleString()}円</td>
+                    </tr>
+                `;
+                resultBody.innerHTML += row;
+            }
+
+            // Calculate payback period and ROI
+            const paybackPeriod = calculatePaybackPeriod(yearlyData.cumulativeProfit);
+            const fiveYearROI = calculateROI(initialInvestment, yearlyData.cumulativeProfit.slice(1).map((profit, i) => 
+                profit - yearlyData.cumulativeProfit[i]
+            ));
+
+            document.getElementById('paybackPeriod').textContent = paybackPeriod.toFixed(1);
+            document.getElementById('fiveYearROI').textContent = fiveYearROI.toFixed(1);
+
+            // Show results and chart
+            resultTable.style.display = 'table';
+            summarySection.style.display = 'block';
+            renderChart(yearlyData);
+        }
+
+        function calculatePaybackPeriod(cumulativeProfits) {
+            for (let i = 0; i < cumulativeProfits.length; i++) {
+                if (cumulativeProfits[i] >= 0) {
+                    return i;
+                }
+            }
+            return 5; // If not paid back within 5 years
+        }
+
+        function calculateROI(initialInvestment, netProfits) {
+            const totalNetProfit = netProfits.reduce((a, b) => a + b, 0);
+            return (totalNetProfit / initialInvestment) * 100;
+        }
+
+        function renderChart(yearlyData) {
+            const ctx = document.getElementById('profitChart').getContext('2d');
+            document.getElementById('profitChart').style.display = 'block';
+
+            // Destroy previous chart if exists
+            if (profitChart) {
+                profitChart.destroy();
+            }
+
+            profitChart = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: ['初期投資', '1年目', '2年目', '3年目', '4年目', '5年目'],
+                    datasets: [
+                        {
+                            label: '累積利益',
+                            data: yearlyData.cumulativeProfit,
+                            borderColor: 'rgba(75, 192, 192, 1)',
+                            backgroundColor: 'rgba(75, 192, 192, 0.2)',
+                            fill: true,
+                            tension: 0.1
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    scales: {
+                        y: {
+                            title: {
+                                display: true,
+                                text: '累積利益 (円)'
+                            }
+                        }
+                    }
+                }
+            });
+        }
+    </script>
+</body>
+</html>
