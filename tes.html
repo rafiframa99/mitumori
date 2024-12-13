@@ -12,6 +12,9 @@
             --background-color: #f4f9f4;
             --text-color: #333;
             --card-background: #ffffff;
+            --revenue-color: #82b359;
+            --cost-color: #bd5555;
+            --profit-color: #3e423e;
         }
 
         * {
@@ -117,19 +120,63 @@
             display: flex;
             justify-content: space-between;
             gap: 20px;
+            flex-wrap: wrap;
+        }
+
+        .financial-summary {
+            display: flex;
+            flex-direction: column;
+            width: 100%;
+            background-color: white;
+            border-radius: 12px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            padding: 20px;
+            margin-bottom: 20px;
+        }
+
+        .financial-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+
+        .financial-label {
+            font-weight: 500;
+            color: #666;
+        }
+
+        .financial-value {
+            font-weight: 700;
+            font-size: 1.2em;
+        }
+
+        .revenue-value {
+            color: var(--revenue-color);
+        }
+
+        .cost-value {
+            color: var(--cost-color);
+        }
+
+        .profit-value {
+            color: var(--profit-color);
+            font-size: 1.5em;
         }
 
         .metric-card {
             flex-grow: 1;
+            min-width: 200px;
             background-color: white;
             border-radius: 12px;
             box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
             padding: 20px;
             text-align: center;
+            margin-bottom: 15px;
         }
 
         .metric-card .metric-value {
-            font-size: 2.5em;
+            font-size: 2em;
             color: var(--primary-color);
             font-weight: 700;
             margin-bottom: 10px;
@@ -220,6 +267,21 @@
 
         <canvas id="profitChart" style="display:none;"></canvas>
 
+        <div class="financial-summary" id="financialSummary" style="display:none;">
+            <div class="financial-row">
+                <div class="financial-label">年間売上高</div>
+                <div class="financial-value revenue-value" id="yearlyRevenue">-</div>
+            </div>
+            <div class="financial-row">
+                <div class="financial-label">年間総費用</div>
+                <div class="financial-value cost-value" id="yearlyCost">-</div>
+            </div>
+            <div class="financial-row">
+                <div class="financial-label">年間利益</div>
+                <div class="financial-value profit-value" id="yearlyProfit">-</div>
+            </div>
+        </div>
+
         <div class="key-metrics" id="summarySection" style="display:none;">
             <div class="metric-card">
                 <div class="metric-value" id="paybackPeriod">-</div>
@@ -228,6 +290,10 @@
             <div class="metric-card">
                 <div class="metric-value" id="fiveYearROI">-</div>
                 <div class="metric-label">5年間投資利回り</div>
+            </div>
+            <div class="metric-card">
+                <div class="metric-value" id="profitPerCowPerDay">-</div>
+                <div class="metric-label">1頭あたり1日の利益</div>
             </div>
         </div>
     </div>
@@ -280,20 +346,38 @@
                     `${cumulativeProfit.toLocaleString()}円`;
             }
 
+            // Calculate key metrics
+            const dailyMilkPerCow = milkVolume / 365; // Milk per cow per day
+            const yearlyRevenue = milkCows * milkVolume * milkPrice;
+            const yearlyCost = (milkCows * feedCost) + (milkCows * vetCost);
+            const yearlyProfit = yearlyRevenue - yearlyCost;
+            const dailyRevenuePerCow = Math.round((yearlyProfit - yearlyCost)/365/milkCows);
+
             // Calculate payback period and ROI
             const paybackPeriod = calculatePaybackPeriod(yearlyData.cumulativeProfit);
             const fiveYearROI = calculateROI(initialInvestment, yearlyData.cumulativeProfit.slice(1).map((profit, i) =>
                 profit - yearlyData.cumulativeProfit[i]
             ));
 
+            // Update metrics in the UI
+            document.getElementById('profitPerCowPerDay').textContent = 
+                `${dailyRevenuePerCow.toLocaleString()}円`;
+            document.getElementById('yearlyRevenue').textContent = 
+                `+${yearlyRevenue.toLocaleString()}円`;
+            document.getElementById('yearlyCost').textContent = 
+                `-${yearlyCost.toLocaleString()}円`;
+            document.getElementById('yearlyProfit').textContent = 
+                `${yearlyProfit.toLocaleString()}円`;
             document.getElementById('paybackPeriod').textContent = `${paybackPeriod.toFixed(1)}年`;
             document.getElementById('fiveYearROI').textContent = `${fiveYearROI.toFixed(1)}%`;
 
             // Show results and chart
             document.getElementById('cumProfitBar').style.display = 'flex';
+            document.getElementById('financialSummary').style.display = 'block';
             document.getElementById('summarySection').style.display = 'flex';
             renderChart(yearlyData);
         }
+
 
         function calculatePaybackPeriod(cumulativeProfits) {
             for (let i = 0; i < cumulativeProfits.length; i++) {
