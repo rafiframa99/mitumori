@@ -364,17 +364,21 @@
                     <label>地域選択</label>
                     <select id="areaSelect" required>
                         <option value="" disabled selected>-- 地域を選択してください --</option>
-                        <option value="central">道央</option>
+                        <option value="central">道央道南</option>
                         <option value="north">道北</option>
-                        <option value="east">道東</option>
-                        <option value="south">道南</option>
-                        <option value="outside">道外</option>
+                        <option value="east">網走</option>
+                        <option value="south">十勝</option>
+                        <option value="outside">根釧</option>
                     </select>
                 </div>
 
                 <div class="custom-input-group">
-                    <label>飼料代 (円/日/頭)</label>
-                    <input type="number" id="feedCost" value="234">
+                    <label>飼料量 (kg/日/頭)</label>
+                    <input type="number" id="feedAmount" value="10">
+                </div>
+                <div class="custom-input-group">
+                    <label>飼料価格 (円/kg)</label>
+                    <input type="number" id="feedPrice" value="23.4">
                 </div>
                 <div class="custom-input-group">
                     <label>1頭あたり乳量 (L/年/頭)</label>
@@ -447,6 +451,10 @@
                 <div class="metric-value" id="profitPerCowPerDay">-</div>
                 <div class="metric-label">1頭あたり1日の利益</div>
             </div>
+            <div class="metric-card">
+                <div class="metric-value" id="initialInvestment">-</div>
+                <div class="metric-label">初期投資</div>
+            </div>
         </div>
     </div>
 
@@ -509,28 +517,40 @@
                 message = '乳牛頭数を入力してください。';
                 grazingInfo.innerHTML = message;
                 grazingInfo.classList.remove('hidden');
-            }
-
-            if (pastureArea >= requiredAreaExtensive) {
-                availableTypes = ['extensive', 'intensive'];
-                message = `面積が十分なため、粗放牧(${requiredAreaExtensive}ha必要)と集約放牧(${requiredAreaIntensive}ha必要)の両方が可能です。`;
-                landPurchaseSection.classList.add('hidden');
-            } else if (pastureArea >= requiredAreaIntensive) {
-                availableTypes = ['intensive'];
-                message = `面積が粗放牧(${requiredAreaExtensive}ha必要)には不十分ですが、集約放牧(${requiredAreaIntensive}ha必要)は可能です。`;
-                landPurchaseSection.classList.add('hidden');
+                availableTypes = ['extensive', 'intensive']; // Show all options
             } else {
-                message = `現在の面積(${pastureArea}ha)では、集約放牧(${requiredAreaIntensive}ha必要)も粗放牧(${requiredAreaExtensive}ha必要)も実施できません。<br>
-                  必要な追加面積: ${(requiredAreaIntensive - pastureArea).toFixed(2)}ha以上`;
-                landPurchaseSection.classList.remove('hidden');
-                updateLandPurchaseInfo();
-
-                if (totalArea >= requiredAreaExtensive) {
+                if (pastureArea >= requiredAreaExtensive) {
                     availableTypes = ['extensive', 'intensive'];
-                } else if (totalArea >= requiredAreaIntensive) {
+                    message = `面積が十分なため、粗放牧(${requiredAreaExtensive}ha必要)と集約放牧(${requiredAreaIntensive}ha必要)の両方が可能です。`;
+                    landPurchaseSection.classList.add('hidden');
+                } else if (pastureArea >= requiredAreaIntensive) {
                     availableTypes = ['intensive'];
+                    message = `面積が粗放牧(${requiredAreaExtensive}ha必要)には不十分ですが、集約放牧(${requiredAreaIntensive}ha必要)は可能です。`;
+                    landPurchaseSection.classList.add('hidden');
+                } else {
+                    message = `現在の面積(${pastureArea}ha)では、集約放牧(${requiredAreaIntensive}ha必要)も粗放牧(${requiredAreaExtensive}ha必要)も実施できません。<br>
+          必要な追加面積: ${(requiredAreaIntensive - pastureArea).toFixed(2)}ha以上`;
+                    landPurchaseSection.classList.remove('hidden');
+                    updateLandPurchaseInfo();
+
+                    if (totalArea >= requiredAreaExtensive) {
+                        availableTypes = ['extensive', 'intensive'];
+                    } else if (totalArea >= requiredAreaIntensive) {
+                        availableTypes = ['intensive'];
+                    }
                 }
             }
+
+            // Populate grazingTypeSelect with available options
+            // availableTypes.forEach(type => {
+            //     const option = document.createElement('option');
+            //     option.value = type;
+            //     option.textContent = type === 'extensive' ? '粗放牧' : '集約放牧';
+            //     grazingTypeSelect.appendChild(option);
+            // });
+
+            grazingInfo.innerHTML = message;
+            grazingInfo.classList.remove('hidden');
 
             // Add available options if any
             if (availableTypes.includes('intensive')) {
@@ -610,7 +630,9 @@
 
             // Get input values
             const milkCows = parseFloat(document.getElementById('milkCows').value);
-            const feedCostPerDay = parseFloat(document.getElementById('feedCost').value);
+            const feedAmount = parseFloat(document.getElementById('feedAmount').value);
+            const feedPrice = parseFloat(document.getElementById('feedPrice').value);
+            const feedCostPerDay = feedAmount * feedPrice;
             const milkVolume = parseFloat(document.getElementById('milkVolume').value);
             const fenceCost = parseFloat(document.getElementById('fenceCost').value);
             const waterSystemCost = parseFloat(document.getElementById('waterSystemCost').value);
@@ -635,12 +657,13 @@
             document.getElementById('yearlyRevenue').textContent = `${financials.yearlyRevenue.toLocaleString()}円`;
             document.getElementById('yearlyCost').textContent = `${financials.yearlyCost.toLocaleString()}円`;
             document.getElementById('yearlyProfit').textContent = `${financials.yearlyProfit.toLocaleString()}円`;
+            document.getElementById('initialInvestment').textContent = `${(initialInvestment / 10000).toFixed(0)}万円`;
 
             // Show financial summary
             financialSummary.style.display = 'block';
 
             // Cumulative profit calculation
-            let cumulativeProfit = -initialInvestment;
+            let cumulativeProfit = 0;
             const yearlyData = {
                 cumulativeProfit: [cumulativeProfit]
             };

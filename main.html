@@ -1,3 +1,4 @@
+<!DOCTYPE html>
 <html lang="ja">
 
 <head>
@@ -6,6 +7,7 @@
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@300;400;700&display=swap" rel="stylesheet">
     <style>
+        /* Custom Styles */
         :root {
             --primary-color: #4a6741;
             --secondary-color: #7bc950;
@@ -17,31 +19,78 @@
             --profit-color: #3e423e;
         }
 
-        * {
+        .advanced-toggle {
+            grid-column: span 2;
+            color: #666;
+            padding: 16px 16px;
+            cursor: pointer;
+            text-align: center;
             margin: 0;
-            padding: 0;
-            box-sizing: border-box;
+            user-select: none;
+            font-size: 0.9em;
+            transition: color 0.3s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 5px;
         }
 
-        body {
-            font-family: 'Noto Sans JP', sans-serif;
-            background-color: var(--background-color);
-            color: var(--text-color);
-            line-height: 1.6;
+        .advanced-toggle:hover {
+            color: var(--primary-color);
         }
 
-        .container {
-            max-width: 900px;
-            margin: 0 auto;
+        .advanced-toggle::after {
+            content: '▼';
+            display: inline-block;
+            font-size: 0.8em;
+            transition: transform 0.3s ease;
+        }
+
+        .advanced-toggle.open::after {
+            transform: rotate(180deg);
+        }
+
+        .advanced-section {
+            grid-column: span 2;
+            background-color: #f8f9fa;
+            border-radius: 8px;
+            margin-top: 0;
+            max-height: 0;
+            overflow: hidden;
+            transition: all 0.3s ease-in-out;
+            opacity: 0;
+        }
+
+        .advanced-section.show {
+            max-height: 1000px;
+            /* Adjust based on content */
+            opacity: 1;
+            margin-top: 10px;
+            margin-bottom: 20px;
             padding: 20px;
         }
 
-        .card {
+        .custom-container {
+            font-family: 'Noto Sans JP', sans-serif;
+            color: var(--text-color);
+            line-height: 1.6;
+            max-width: 900px;
+            margin: 0 auto;
+            padding: 20px;
+            transition: transform 0.3s ease;
+        }
+
+        .custom-card {
             background-color: var(--card-background);
             border-radius: 12px;
-            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
             padding: 30px;
             margin-bottom: 20px;
+            transition: box-shadow 0.3s ease;
+        }
+
+        .custom-card:hover {
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.2);
         }
 
         h1 {
@@ -49,33 +98,52 @@
             text-align: center;
             margin-bottom: 30px;
             font-weight: 700;
+            transition: color 0.3s ease;
         }
 
-        .input-section {
+        .custom-input-section {
             display: grid;
             grid-template-columns: repeat(2, 1fr);
             gap: 15px;
         }
 
-        .input-group {
+        .custom-input {
             display: flex;
             flex-direction: column;
         }
 
-        .input-group label {
+        .custom-input label {
             margin-bottom: 5px;
             color: var(--primary-color);
             font-weight: 500;
+            transition: color 0.3s ease;
         }
 
-        .input-group input {
+        .custom-input input,
+        .custom-input select {
             padding: 10px;
             border: 1px solid #ddd;
             border-radius: 6px;
             font-size: 16px;
+            transition: border-color 0.3s ease, box-shadow 0.3s ease;
         }
 
-        .calculate-btn {
+        .custom-input input:focus,
+        .custom-input select:focus {
+            border-color: var(--primary-color);
+            box-shadow: 0 0 8px rgba(74, 103, 65, 0.2);
+        }
+
+        .custom-grazing-info {
+            grid-column: span 2;
+            padding: 15px;
+            background-color: #f0f7f0;
+            border-radius: 6px;
+            margin: 10px 0;
+            transition: background-color 0.3s ease;
+        }
+
+        .custom-calculate-btn {
             grid-column: span 2;
             background-color: #82b359;
             color: white;
@@ -84,11 +152,19 @@
             border-radius: 8px;
             font-size: 18px;
             cursor: pointer;
-            transition: background-color 0.3s ease;
+            transition: background-color 0.2s ease;
+            width: 100%;
+            /* Added to fill horizontally */
+            box-sizing: border-box;
+            /* Ensure padding is included in the width */
         }
 
-        .calculate-btn:hover {
-            background-color: var(--primary-color);
+        .custom-calculate-btn:hover {
+            background-color: #98cc5c;
+        }
+
+        .hidden {
+            display: none !important;
         }
 
         .cumulative-profit-bar {
@@ -97,9 +173,14 @@
             align-items: center;
             background-color: white;
             border-radius: 12px;
-            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
             padding: 20px;
             margin-bottom: 20px;
+            transition: box-shadow 0.3s ease;
+        }
+
+        .cumulative-profit-bar:hover {
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.2);
         }
 
         .cumulative-profit-bar .year-profit {
@@ -123,56 +204,20 @@
             flex-wrap: wrap;
         }
 
-        .financial-summary {
-            display: flex;
-            flex-direction: column;
-            width: 100%;
-            background-color: white;
-            border-radius: 12px;
-            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-            padding: 20px;
-            margin-bottom: 20px;
-        }
-
-        .financial-row {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 10px;
-        }
-
-        .financial-label {
-            font-weight: 500;
-            color: #666;
-        }
-
-        .financial-value {
-            font-weight: 700;
-            font-size: 1.2em;
-        }
-
-        .revenue-value {
-            color: var(--revenue-color);
-        }
-
-        .cost-value {
-            color: var(--cost-color);
-        }
-
-        .profit-value {
-            color: var(--profit-color);
-            font-size: 1.5em;
-        }
-
         .metric-card {
             flex-grow: 1;
-            min-width: 200px;
             background-color: white;
             border-radius: 12px;
-            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
             padding: 20px;
             text-align: center;
             margin-bottom: 15px;
+            transition: box-shadow 0.3s ease, transform 0.3s ease;
+        }
+
+        .metric-card:hover {
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.2);
+            transform: translateY(-2px);
         }
 
         .metric-card .metric-value {
@@ -190,12 +235,213 @@
         #profitChart {
             background-color: white;
             border-radius: 12px;
-            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
             padding: 20px;
             margin-bottom: 20px;
+            transition: box-shadow 0.3s ease;
+        }
+
+        #profitChart:hover {
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.2);
+        }
+
+        .land-purchase-section {
+            grid-column: span 2;
+            background-color: #fff3e0;
+            padding: 15px;
+            border-radius: 6px;
+            margin: 10px 0;
+            transition: background-color 0.3s ease;
+        }
+
+        .error-message {
+            background-color: #fff3e0;
+            border-left: 4px solid #ff9800;
+            border-radius: 8px;
+            padding: 20px;
+            margin: 20px 0;
+            color: #d84315;
+            font-size: 1.1em;
+            line-height: 1.6;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            transition: background-color 0.3s ease, box-shadow 0.3s ease;
+        }
+
+        .error-message:hover {
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+        }
+
+        .error-message::before {
+            content: "⚠️";
+            font-size: 1.5em;
+        }
+
+        .error-message .suggestion {
+            color: #666;
+            margin-top: 8px;
+            font-size: 0.9em;
+        }
+
+        .cta-buttons {
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        .cta-button {
+            display: inline-block;
+            padding: 12px 24px;
+            background-color: var(--primary-color);
+            color: white;
+            text-decoration: none;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: 500;
+            transition: all 0.3s ease;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+
+        .cta-button:hover {
+            background-color: #5a7751;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+        }
+
+        .disclaimer {
+            text-align: left;
+            color: #666;
+            font-size: 1em;
+            line-height: 1.6;
+            padding: 0 20px 20px 20px;
+            margin: 0 0 20px 0;
+            border-radius: 8px;
+        }
+
+        .copyright {
+            text-align: center;
+            color: #666;
+            font-size: 0.8em;
+            padding: 20px 0;
+            margin-top: 40px;
+        }
+
+        .help-icon {
+            display: inline-block;
+            margin-left: 5px;
+            position: relative;
+            cursor: help;
+        }
+
+        .help-icon:after {
+            content: "?";
+            display: inline-block;
+            width: 16px;
+            height: 16px;
+            background: #f25757;
+            color: white;
+            border-radius: 50%;
+            text-align: center;
+            font-size: 12px;
+            line-height: 16px;
+        }
+
+        .help-icon:hover .tooltip {
+            visibility: visible;
+            opacity: 1;
+        }
+
+        .tooltip {
+            visibility: hidden;
+            position: absolute;
+            bottom: 100%;
+            left: 50%;
+            transform: translateX(-50%);
+            background-color: #333;
+            color: white;
+            padding: 8px;
+            border-radius: 4px;
+            width: 200px;
+            font-size: 12px;
+            opacity: 0;
+            transition: opacity 0.3s;
+            z-index: 1000;
+        }
+
+        .tooltip:after {
+            content: "";
+            position: absolute;
+            top: 100%;
+            left: 50%;
+            margin-left: -5px;
+            border-width: 5px;
+            border-style: solid;
+            border-color: #333 transparent transparent transparent;
+        }
+
+        .yearly-breakdown {
+            margin-top: 2rem;
+            padding: 1rem;
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+
+        .yearly-breakdown h3 {
+            margin-bottom: 1rem;
+            color: #333;
+        }
+
+        .yearly-breakdown table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 1rem;
+        }
+
+        .yearly-breakdown th,
+        .yearly-breakdown td {
+            padding: 12px;
+            text-align: right;
+            border-bottom: 1px solid #eee;
+        }
+
+        .yearly-breakdown th:first-child,
+        .yearly-breakdown td:first-child {
+            text-align: left;
+        }
+
+        .yearly-breakdown th {
+            background-color: #f8f9fa;
+            font-weight: bold;
+        }
+
+        .yearly-breakdown tr:hover {
+            background-color: #f8f9fa;
+        }
+
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateY(-10px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .error-message.show {
+            animation: slideIn 0.3s ease-out;
         }
 
         @media (max-width: 768px) {
+            .custom-input-section {
+                grid-template-columns: 1fr;
+            }
 
             .cumulative-profit-bar,
             .key-metrics {
@@ -210,54 +456,131 @@
 </head>
 
 <body>
-    <div class="container">
-        <h1>🐄 放牧収益シミュレーター</h1>
-
-        <div class="card">
-            <div class="input-section" id="inputSection">
-                <div class="input-group">
-                    <label>乳牛頭数 (頭)</label>
-                    <input type="number" id="milkCows" value="20">
+    <div class="custom-container">
+        <div class="disclaimer" id="disclaimerSection">
+            ※本シュミレーターはあくまで概算です。<br>
+            　実際の数値とは異なりますので、参考値としてください。<br>
+            　詳細な収益計算や設計をご希望される方はお問合せください。
+        </div>
+        <div class="custom-card">
+            <div class="custom-input-section" id="initialInputSection">
+                <div class="custom-input">
+                    <label>放牧可能面積 (ha)
+                        <span class="help-icon">
+                            <span class="tooltip">牛舎周辺にある草地面積を記入下さい。地続きで牛が歩いて行ける距離は平坦で約1㎞、起伏がある土地で500mほどです。</span>
+                        </span>
+                    </label>
+                    <input type="number" id="pastureArea" name="pastureArea">
                 </div>
-                <div class="input-group">
-                    <label>1頭あたり牛の購入価格 (円)</label>
-                    <input type="number" id="cowPurchasePrice" value="500000">
+                <div class="custom-input">
+                    <label>搾乳頭数（頭）
+                        <span class="help-icon">
+                            <span class="tooltip">年間平均して何頭の牛を搾乳しているか記入してください。</span>
+                        </span>
+                    </label>
+                    <input type="number" id="milkCows" name="milkCows">
                 </div>
-                <div class="input-group">
-                    <label>放牧可能面積 (ha)</label>
-                    <input type="number" id="pastureArea" value="10">
-                </div>
-                <div class="input-group">
-                    <label>飼料代 (円/年/頭)</label>
-                    <input type="number" id="feedCost" value="30000">
-                </div>
-                <div class="input-group">
-                    <label>1頭あたり乳量 (L/年)</label>
-                    <input type="number" id="milkVolume" value="6000">
-                </div>
-                <div class="input-group">
-                    <label>牧柵設置費用 (円)</label>
-                    <input type="number" id="fenceCost" value="500000">
-                </div>
-                <div class="input-group">
-                    <label>給水設備設置費用 (円)</label>
-                    <input type="number" id="waterSystemCost" value="300000">
-                </div>
-                <div class="input-group">
-                    <label>牛乳販売価格 (円/L)</label>
-                    <input type="number" id="milkPrice" value="116">
-                </div>
-                <div class="input-group">
-                    <label>年間獣医費 (円/頭)</label>
-                    <input type="number" id="vetCost" value="20000">
-                </div>
-
-                <button class="calculate-btn" onclick="calculateProfits()">収益計算</button>
             </div>
+
+            <div class="custom-grazing-info hidden" id="grazingInfo"></div>
+
+            <div class="land-purchase-section hidden" id="landPurchaseSection">
+                <h3 style="font-weight: bold; font-size: 19px;">追加の土地が必要です</h3>
+                <div class="custom-input-section">
+                    <div class="custom-input">
+                        <label>土地価格 (円/反)
+                            <span class="help-icon">
+                                <span class="tooltip">1反は約1,000平方メートルです</span>
+                            </span>
+                        </label>
+                        <input type="number" id="landPrice" value="100000">
+                    </div>
+                    <div class="custom-input">
+                        <label>購入予定面積 (ha)
+                            <span class="help-icon">
+                                <span class="tooltip">まだありません</span>
+                            </span>
+                        </label>
+                        <input type="number" id="additionalLand">
+                    </div>
+                </div>
+            </div>
+
+            <div class="custom-input-section" id="initialInputSection">
+                <div class="custom-input" id="grazingTypeGroup">
+                    <label>放牧タイプ
+                        <span class="help-icon">
+                            <span class="tooltip">選択した放牧タイプによりシュミレーションが変わります。<br><br>
+                                集約放牧：草地を1区画約0.5～1haに細かく分け、牛を集中的に放牧する方法。手間と初期コストは増えるが、草地の利用率が上がる。<br><br>
+                                粗放牧：広大な草地に牛を自由に放牧する方法。手間と初期コストは少ないが、草地の利用率は下がる。
+                            </span>
+                        </span>
+                    </label>
+                    <select id="grazingType" required name="grazingType">
+                        <option value="" disabled selected>-- 放牧タイプを選択してください --</option>
+                    </select>
+                </div>
+                <div class="custom-input">
+                    <label>地域選択
+                        <span class="help-icon">
+                            <span class="tooltip">牧場のある地域を選択ください。</span>
+                        </span>
+                    </label>
+                    <select id="areaSelect" required>
+                        <option value="" disabled selected>-- 地域を選択してください --</option>
+                        <option value="central">道央道南</option>
+                        <option value="north">道北</option>
+                        <option value="east">網走</option>
+                        <option value="south">十勝</option>
+                        <option value="outside">根釧</option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="advanced-toggle" onclick="toggleAdvanced()">
+                詳細設定
+            </div>
+
+            <div class="advanced-section" id="advancedSection">
+                <div class="custom-input-section" id="secondaryInputSection">
+                    <div class="custom-input">
+                        <label>飼料量 (kg/日/頭)</label>
+                        <input type="number" id="feedAmount" value="11">
+                    </div>
+                    <div class="custom-input">
+                        <label>飼料価格 (円/kg)</label>
+                        <input type="number" id="feedPrice" value="88">
+                    </div>
+                    <div class="custom-input">
+                        <label>1頭あたり乳量 (L/年/頭)</label>
+                        <input type="number" id="milkVolume" value="9000">
+                    </div>
+                    <div class="custom-input">
+                        <label>牧柵設置費用 (円)
+                            <span class="help-icon">
+                                <span class="tooltip">このデフォルトの数値は、面積によるかわります</span>
+                            </span>
+                        </label>
+                        <input type="number" id="fenceCost" name="fenceCost" value="0">
+                    </div>
+                    <div class="custom-input">
+                        <label>給水設備設置費用 (円)
+                            <span class="help-icon">
+                                <span class="tooltip">このデフォルトの数値は、面積によるかわります</span>
+                            </span>
+                        </label>
+                        <input type="number" id="waterSystemCost" value="300000">
+                    </div>
+                    <div class="custom-input">
+                        <label>牛乳販売価格 (円/L)</label>
+                        <input type="number" id="milkPrice" value="110">
+                    </div>
+                </div>
+            </div>
+            <button class="custom-calculate-btn" onclick="calculateProfits()">収益計算</button>
         </div>
 
-        <div class="cumulative-profit-bar" id="cumProfitBar" style="display:none;">
-            <div class="year-profit" id="year0">0年目<br><span></span></div>
+        <div class="cumulative-profit-bar hidden" id="cumProfitBar">
             <div class="year-profit" id="year1">1年目<br><span></span></div>
             <div class="year-profit" id="year2">2年目<br><span></span></div>
             <div class="year-profit" id="year3">3年目<br><span></span></div>
@@ -265,24 +588,37 @@
             <div class="year-profit" id="year5">5年目<br><span></span></div>
         </div>
 
-        <canvas id="profitChart" style="display:none;"></canvas>
-
-        <div class="financial-summary" id="financialSummary" style="display:none;">
-            <div class="financial-row">
-                <div class="financial-label">年間売上高</div>
-                <div class="financial-value revenue-value" id="yearlyRevenue">-</div>
-            </div>
-            <div class="financial-row">
-                <div class="financial-label">年間総費用</div>
-                <div class="financial-value cost-value" id="yearlyCost">-</div>
-            </div>
-            <div class="financial-row">
-                <div class="financial-label">年間利益</div>
-                <div class="financial-value profit-value" id="yearlyProfit">-</div>
+        <div class="error-message hidden" id="errorMessage">
+            <div>
+                <div>利用可能な放牧タイプが選択されていません</div>
+                <div class="suggestion">
+                    以下のいずれかの方法で解決してください：
+                    <br>• 土地面積を増やして必要面積を確保する
+                    <br>• 乳牛頭数を減らして必要面積を抑える
+                    <br>• 追加土地購入で必要面積を確保する
+                </div>
             </div>
         </div>
 
-        <div class="key-metrics" id="summarySection" style="display:none;">
+        <canvas id="profitChart" class="hidden"></canvas>
+
+        <div class="yearly-breakdown custom-card hidden" id="yearlyBreakdown">
+            <table>
+                <thead>
+                    <tr>
+                        <th>年度</th>
+                        <th>売上高</th>
+                        <th>費用</th>
+                        <th>利益</th>
+                        <th>利益差</th>
+                    </tr>
+                </thead>
+                <tbody id="yearlyBreakdownBody">
+                </tbody>
+            </table>
+        </div>
+
+        <div class="key-metrics hidden" id="summarySection">
             <div class="metric-card">
                 <div class="metric-value" id="paybackPeriod">-</div>
                 <div class="metric-label">投資回収期間</div>
@@ -295,141 +631,569 @@
                 <div class="metric-value" id="profitPerCowPerDay">-</div>
                 <div class="metric-label">1頭あたり1日の利益</div>
             </div>
+            <div class="metric-card">
+                <div class="metric-value" id="initialInvestment">-</div>
+                <div class="metric-label">初期投資</div>
+            </div>
+        </div>
+
+        <div class="cta-buttons hidden" id="ctaSection">
+            <a href="https://farmage.co.jp/contact/" class="cta-button">お問い合わせ</a>
+            <a href="https://farmage.co.jp/products/fence_jidousystem/" class="cta-button">フェンスの設計はこちら</a>
+            <a href="https://example.com/success-cases" class="cta-button">放牧転換の成功事例はこちら</a>
+        </div>
+
+        <div class="copyright">
+            © farmage co.,ltd All Rights Reserved.
         </div>
     </div>
 
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2.0.0"></script>
     <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            const milkCowsInput = document.getElementById('milkCows');
+            const pastureAreaInput = document.getElementById('pastureArea');
+            const landPriceInput = document.getElementById('landPrice');
+            const additionalLandInput = document.getElementById('additionalLand');
+
+            // Add input event listeners for real-time updates
+            milkCowsInput.addEventListener('input', updateGrazingType);
+            pastureAreaInput.addEventListener('input', updateGrazingType);
+            additionalLandInput.addEventListener('input', updateGrazingType);
+
+            // Add input event listeners for land purchase calculations
+            if (landPriceInput && additionalLandInput) {
+                landPriceInput.addEventListener('input', updateLandPurchaseInfo);
+                additionalLandInput.addEventListener('input', updateLandPurchaseInfo);
+            }
+
+            // Initial check
+            updateGrazingType();
+
+            document.getElementById('pastureArea').addEventListener('input', calculateDefaultValue);
+            document.getElementById('additionalLand').addEventListener('input', calculateDefaultValue);
+            document.getElementById('grazingType').addEventListener('change', calculateDefaultValue);
+        });
+
+        function updateGrazingType() {
+            const milkCows = parseFloat(document.getElementById('milkCows').value) || 0;
+            const pastureArea = parseFloat(document.getElementById('pastureArea').value) || 0;
+            const grazingInfo = document.getElementById('grazingInfo');
+            const secondaryInputSection = document.getElementById('secondaryInputSection');
+            const landPurchaseSection = document.getElementById('landPurchaseSection');
+            const grazingTypeSelect = document.getElementById('grazingType');
+
+            // Calculate total area including purchased land if any
+            let totalArea = pastureArea;
+            if (!landPurchaseSection.classList.contains('hidden')) {
+                const additionalLand = parseFloat(document.getElementById('additionalLand').value) || 0;
+                totalArea += additionalLand;
+            }
+
+            // Calculate required area for each type
+            const requiredAreaExtensive = milkCows * 1; // 1 ha per cow
+            const requiredAreaIntensive = milkCows * 0.5; // 0.5 ha per cow
+
+            let message = '';
+            let availableTypes = [];
+
+            // Clear previous options
+            grazingTypeSelect.innerHTML = '';
+
+            // Add disabled default option
+            const defaultOption = document.createElement('option');
+            defaultOption.value = '';
+            defaultOption.disabled = true;
+            defaultOption.selected = true;
+            defaultOption.textContent = '-- 放牧タイプを選択してください --';
+            grazingTypeSelect.appendChild(defaultOption);
+
+            if (milkCows <= 0) {
+                message = '乳牛頭数を入力してください。';
+                grazingInfo.innerHTML = message;
+                grazingInfo.classList.remove('hidden');
+                availableTypes = ['extensive', 'intensive']; // Show all options
+            } else {
+                if (pastureArea >= requiredAreaExtensive) {
+                    availableTypes = ['extensive', 'intensive'];
+                    message = `面積が十分なため、粗放牧(${requiredAreaExtensive}ha必要)と集約放牧(${requiredAreaIntensive}ha必要)の両方が可能です。`;
+                    landPurchaseSection.classList.add('hidden');
+                } else if (pastureArea >= requiredAreaIntensive) {
+                    availableTypes = ['intensive'];
+                    message = `面積が粗放牧(${requiredAreaExtensive}ha必要)には不十分ですが、集約放牧(${requiredAreaIntensive}ha必要)は可能です。`;
+                    landPurchaseSection.classList.add('hidden');
+                } else {
+                    message = `現在の面積(${pastureArea}ha)では、集約放牧(${requiredAreaIntensive}ha必要)も粗放牧(${requiredAreaExtensive}ha必要)も実施できません。<br>
+          必要な追加面積: ${(requiredAreaIntensive - pastureArea).toFixed(2)}ha以上`;
+                    landPurchaseSection.classList.remove('hidden');
+                    updateLandPurchaseInfo();
+
+                    if (totalArea >= requiredAreaExtensive) {
+                        availableTypes = ['extensive', 'intensive'];
+                    } else if (totalArea >= requiredAreaIntensive) {
+                        availableTypes = ['intensive'];
+                    }
+                }
+            }
+
+            grazingInfo.innerHTML = message;
+            grazingInfo.classList.remove('hidden');
+
+            // Add available options if any
+            if (availableTypes.includes('intensive')) {
+                const intensiveOption = document.createElement('option');
+                intensiveOption.value = 'intensive';
+                intensiveOption.textContent = '集約放牧';
+                grazingTypeSelect.appendChild(intensiveOption);
+            }
+            if (availableTypes.includes('extensive')) {
+                const extensiveOption = document.createElement('option');
+                extensiveOption.value = 'extensive';
+                extensiveOption.textContent = '粗放牧';
+                grazingTypeSelect.appendChild(extensiveOption);
+            }
+
+            // Show info and secondary inputs
+            grazingInfo.innerHTML = message;
+            grazingInfo.classList.remove('hidden');
+            secondaryInputSection.classList.remove('hidden');
+        }
+
+        function updateLandPurchaseInfo() {
+            const milkCows = parseFloat(document.getElementById('milkCows').value) || 0;
+            const currentArea = parseFloat(document.getElementById('pastureArea').value) || 0;
+            const landPrice = parseFloat(document.getElementById('landPrice').value) || 0;
+            const additionalLand = parseFloat(document.getElementById('additionalLand').value) || 0;
+
+            const requiredAreaIntensive = milkCows * 0.5; // 0.5 ha per cow
+            const minimumAdditionalArea = requiredAreaIntensive - currentArea;
+
+            const totalCost = (landPrice / 1000) * (additionalLand * 10000);
+            const isEnough = additionalLand >= minimumAdditionalArea;
+
+            const message = `必要最小面積: ${Math.floor(minimumAdditionalArea * 10)}反 (${minimumAdditionalArea.toFixed(2)}ha)<br>
+                購入予定面積: ${Math.floor(additionalLand * 10)}反 (${additionalLand.toFixed(2)}ha)<br>
+                予想購入費用: ${totalCost.toLocaleString()}円<br>
+                ${isEnough ? '✅ 十分な面積です' : '❌ まだ必要な面積に足りません'}`;
+
+            const landPurchaseInfo = document.createElement('div');
+            landPurchaseInfo.innerHTML = message;
+
+            // Update the land purchase section
+            const existingInfo = document.querySelector('#landPurchaseSection .purchase-info');
+            if (existingInfo) {
+                existingInfo.remove();
+            }
+            landPurchaseInfo.className = 'purchase-info';
+            document.getElementById('landPurchaseSection').appendChild(landPurchaseInfo);
+        }
+
         function calculateProfits() {
+            const cumProfitBar = document.getElementById('cumProfitBar');
+            const summarySection = document.getElementById('summarySection');
+            const profitChartElement = document.getElementById('profitChart');
+            const errorMessageElement = document.getElementById('errorMessage');
+
+            // Check if a valid grazing type is selected
+            const grazingType = document.getElementById('grazingType').value;
+            if (!grazingType) {
+                // Hide results
+                cumProfitBar.classList.add('hidden');
+                summarySection.classList.add('hidden');
+                profitChartElement.classList.add('hidden');
+                document.getElementById('ctaSection').classList.add('hidden');
+
+                // Show error
+                errorMessageElement.classList.remove('hidden');
+                errorMessageElement.classList.add('show');
+                return;
+            }
+
+            // Hide error and show chart
+            errorMessageElement.classList.add('hidden');
+            errorMessageElement.classList.remove('show');
+            profitChartElement.classList.remove('hidden');
+
             // Get input values
             const milkCows = parseFloat(document.getElementById('milkCows').value);
-            const cowPurchasePrice = parseFloat(document.getElementById('cowPurchasePrice').value);
-            const pastureArea = parseFloat(document.getElementById('pastureArea').value);
-            const feedCost = parseFloat(document.getElementById('feedCost').value);
+            const feedAmount = parseFloat(document.getElementById('feedAmount').value);
+            const feedPrice = parseFloat(document.getElementById('feedPrice').value);
+            const feedCostPerDay = feedAmount * feedPrice;
             const milkVolume = parseFloat(document.getElementById('milkVolume').value);
             const fenceCost = parseFloat(document.getElementById('fenceCost').value);
             const waterSystemCost = parseFloat(document.getElementById('waterSystemCost').value);
             const milkPrice = parseFloat(document.getElementById('milkPrice').value);
-            const vetCost = parseFloat(document.getElementById('vetCost').value);
 
-            // Calculate initial investment
-            const cowPurchaseCost = milkCows * cowPurchasePrice;
-            const initialInvestment = cowPurchaseCost + fenceCost + waterSystemCost;
+            // Get land purchase cost if the section is visible
+            let landPurchaseCost = 0;
+            const landPurchaseSection = document.getElementById('landPurchaseSection');
+            if (!landPurchaseSection.classList.contains('hidden')) {
+                const landPrice = parseFloat(document.getElementById('landPrice').value) || 0;
+                const additionalLand = parseFloat(document.getElementById('additionalLand').value) || 0;
+                landPurchaseCost = (landPrice / 1000) * (additionalLand * 10000); // Convert land price from 円/反 to 円/m² and calculate total cost
+            }
 
-            // Cumulative profit calculation
-            let cumulativeProfit = -initialInvestment;
-            const yearlyData = {
-                cumulativeProfit: [cumulativeProfit]
+            // Calculate initial investment including land purchase if applicable
+            const initialInvestment = fenceCost + waterSystemCost + landPurchaseCost;
+
+            const yearlyValues = calculateYearlyValues(milkCows, milkVolume, milkPrice, feedCostPerDay);
+
+            // Update financial summary display using first year values
+            document.getElementById('initialInvestment').textContent = `${(initialInvestment / 10000).toFixed(0)}万円`;
+
+            document.getElementById('ctaSection').classList.remove('hidden');
+
+            // Calculate yearly cumulative profits including initial investment impact
+            let cumulativeWithInvestment = 0;
+            document.getElementById('year1').querySelector('span').textContent =
+                `${Math.round(cumulativeWithInvestment).toLocaleString()}円`;
+
+            yearlyValues.forEach((yearData, index) => {
+                cumulativeWithInvestment += yearData.profit;
+                document.getElementById(`year${index + 1}`).querySelector('span').textContent =
+                    `${Math.round(cumulativeWithInvestment).toLocaleString()}円`;
+            });
+
+            // Calculate and display metrics for summary cards
+            const summaryMetrics = {
+                paybackPeriod: {
+                    value: calculatePaybackPeriod(yearlyValues, initialInvestment),
+                    format: (value) => {
+                        if (value.years === 5 && value.months === 0) {
+                            return '5年以上';
+                        }
+                        if (value.years === 0 && value.months === 0) {
+                            return '即時';
+                        }
+                        const yearPart = value.years > 0 ? `${value.years}年` : '';
+                        const monthPart = value.months > 0 ? `${value.months}ヶ月` : '';
+                        return `${yearPart}${monthPart}`;
+                    }
+                },
+                fiveYearROI: {
+                    value: calculateROI(initialInvestment, yearlyValues.map(year => year.profit)),
+                    format: (value) => `${value.toFixed(1)}%`
+                },
+                profitPerCowPerDay: {
+                    value: Math.round(yearlyValues[4].profit / milkCows / 365),
+                    format: (value) => `${value.toLocaleString()}円`
+                }
             };
 
-            // Update 0th year profit bar
-            document.getElementById('year0').querySelector('span').textContent =
-                `-${initialInvestment.toLocaleString()}円`;
+            // Update all summary metric cards
+            Object.entries(summaryMetrics).forEach(([id, metric]) => {
+                document.getElementById(id).textContent = metric.format(metric.value);
+            });
+
+            // Replace the existing yearly breakdown table creation with this:
+            const yearlyBreakdown = document.getElementById('yearlyBreakdown');
+            const yearlyBreakdownBody = document.getElementById('yearlyBreakdownBody');
+            yearlyBreakdownBody.innerHTML = '';
+
+            yearlyValues.forEach((value, index) => {
+                const row = document.createElement('tr');
+                row.innerHTML = `
+        <td>${index + 1}年目</td>
+        <td>${Math.round(value.revenue).toLocaleString()}円</td>
+        <td>${Math.round(value.cost).toLocaleString()}円</td>
+        <td>${Math.round(value.profit).toLocaleString()}円</td>
+        <td>${Math.round(value.differenceFromFirstYear).toLocaleString()}円</td>
+    `;
+                yearlyBreakdownBody.appendChild(row);
+            });
+
+            // Show results sections
+            cumProfitBar.classList.remove('hidden');
+            summarySection.classList.remove('hidden');
+            yearlyBreakdown.classList.remove('hidden');
+
+            Chart.register(ChartDataLabels);
+            renderChart(yearlyValues);
+        }
+
+
+
+
+        //helper functions
+
+        function calculateYearlyValues(milkCows, milkVolume, milkPrice, feedCostPerDay) {
+            const grazingType = document.getElementById('grazingType').value;
+            const firstYearMilk = milkVolume;
+            const firstYearFeed = feedCostPerDay;
+            var differenceFromFirstYear = 0;
+            const yearlyValues = [];
 
             for (let year = 1; year <= 5; year++) {
-                // Calculate yearly income
-                const yearlyMilk = milkCows * milkVolume * milkPrice;
+                let adjustedMilkVolume, adjustedFeedCost;
 
-                // Calculate yearly expenses
-                const yearlyFeedCost = milkCows * feedCost;
-                const yearlyVetCost = milkCows * vetCost;
-                const totalYearlyExpense = yearlyFeedCost + yearlyVetCost;
-
-                // Calculate net profit
-                const netProfit = yearlyMilk - totalYearlyExpense;
-                cumulativeProfit += netProfit;
-
-                // Store cumulative profit
-                yearlyData.cumulativeProfit.push(cumulativeProfit);
-
-                // Update profit bar
-                document.getElementById(`year${year}`).querySelector('span').textContent =
-                    `${cumulativeProfit.toLocaleString()}円`;
-            }
-
-            // Calculate key metrics
-            const dailyMilkPerCow = milkVolume / 365; // Milk per cow per day
-            const yearlyRevenue = milkCows * milkVolume * milkPrice;
-            const yearlyCost = (milkCows * feedCost) + (milkCows * vetCost);
-            const yearlyProfit = yearlyRevenue - yearlyCost;
-            const dailyRevenuePerCow = Math.round((yearlyProfit - yearlyCost)/365/milkCows);
-
-            // Calculate payback period and ROI
-            const paybackPeriod = calculatePaybackPeriod(yearlyData.cumulativeProfit);
-            const fiveYearROI = calculateROI(initialInvestment, yearlyData.cumulativeProfit.slice(1).map((profit, i) =>
-                profit - yearlyData.cumulativeProfit[i]
-            ));
-
-            // Update metrics in the UI
-            document.getElementById('profitPerCowPerDay').textContent = 
-                `${dailyRevenuePerCow.toLocaleString()}円`;
-            document.getElementById('yearlyRevenue').textContent = 
-                `+${yearlyRevenue.toLocaleString()}円`;
-            document.getElementById('yearlyCost').textContent = 
-                `-${yearlyCost.toLocaleString()}円`;
-            document.getElementById('yearlyProfit').textContent = 
-                `${yearlyProfit.toLocaleString()}円`;
-            document.getElementById('paybackPeriod').textContent = `${paybackPeriod.toFixed(1)}年`;
-            document.getElementById('fiveYearROI').textContent = `${fiveYearROI.toFixed(1)}%`;
-
-            // Show results and chart
-            document.getElementById('cumProfitBar').style.display = 'flex';
-            document.getElementById('financialSummary').style.display = 'block';
-            document.getElementById('summarySection').style.display = 'flex';
-            renderChart(yearlyData);
-        }
-
-
-        function calculatePaybackPeriod(cumulativeProfits) {
-            for (let i = 0; i < cumulativeProfits.length; i++) {
-                if (cumulativeProfits[i] >= 0) {
-                    return i;
+                if (grazingType === 'intensive') {
+                    adjustedMilkVolume = firstYearMilk * Math.pow(0.95, (year - 1) / 4);
+                    adjustedFeedCost = firstYearFeed * Math.pow(0.3, (year - 1) / 4);
+                } else {
+                    adjustedMilkVolume = firstYearMilk * Math.pow(0.9, (year - 1) / 4);
+                    adjustedFeedCost = firstYearFeed * Math.pow(0.5, (year - 1) / 4);
                 }
+
+                const yearlyRevenue = milkCows * adjustedMilkVolume * milkPrice;
+                const yearlyCost = milkCows * adjustedFeedCost * 365;
+                const yearlyProfit = yearlyRevenue - yearlyCost;
+                const cumulativeProfit = yearlyValues.length > 0 ? yearlyValues[year - 2].cumulativeProfit + yearlyProfit : yearlyProfit;
+                if (year == 1) {
+                    differenceFromFirstYear = 0;
+                } else {
+                    differenceFromFirstYear = yearlyProfit - yearlyValues[0].profit;
+                }
+
+                yearlyValues.push({
+                    revenue: yearlyRevenue,
+                    cost: yearlyCost,
+                    profit: yearlyProfit,
+                    cumulativeProfit: cumulativeProfit,
+                    differenceFromFirstYear: differenceFromFirstYear
+                });
             }
-            return 5; // If not paid back within 5 years
+
+            return yearlyValues;
         }
+
+        function calculatePaybackPeriod(yearlyValues, initialInvestment) {
+            var remainingInvestment = initialInvestment;
+            var month
+            for (let i = 0; i < yearlyValues.length; i++) {
+                const currentProfit = yearlyValues[i].profit;
+                if (remainingInvestment > currentProfit) {
+                    remainingInvestment -= currentProfit;
+                } else {
+                    const months = (remainingInvestment / currentProfit) * 12;
+                    return {
+                        years: i,
+                        months: Math.round(months)
+                    };
+                }
+            };
+        }
+
 
         function calculateROI(initialInvestment, netProfits) {
             const totalNetProfit = netProfits.reduce((a, b) => a + b, 0);
             return (totalNetProfit / initialInvestment) * 100;
         }
 
-        function renderChart(yearlyData) {
+        function renderChart(yearlyValues) {
             const ctx = document.getElementById('profitChart').getContext('2d');
-            document.getElementById('profitChart').style.display = 'block';
 
-            // Check if the previous chart exists and is a Chart instance before destroying
+            // Check if the previous chart exists and destroy it
             if (window.profitChart instanceof Chart) {
                 window.profitChart.destroy();
             }
 
+            // Prepare the data
+            const labels = ['1年目 (転換前)', '2年目', '3年目', '4年目', '5年目'];
+            const revenueData = yearlyValues.map(year => year.revenue);
+            const costData = yearlyValues.map(year => year.cost);
+            const profitData = yearlyValues.map(year => year.profit);
+            const costRevenueRatio = yearlyValues.map(year => (year.cost / year.revenue * 100));
+
             window.profitChart = new Chart(ctx, {
-                type: 'line',
+                type: 'bar',
                 data: {
-                    labels: ['初期投資', '1年目', '2年目', '3年目', '4年目', '5年目'],
+                    labels: labels,
                     datasets: [
                         {
-                            label: '累積利益',
-                            data: yearlyData.cumulativeProfit,
-                            borderColor: 'rgba(75, 192, 192, 1)',
-                            backgroundColor: 'rgba(75, 192, 192, 0.2)',
-                            fill: true,
-                            tension: 0.1
+                            label: '乳代',
+                            data: revenueData,
+                            backgroundColor: 'rgb(54, 162, 235)',
+                            borderColor: 'rgb(54, 162, 235)',
+                            borderWidth: 0,
+                            borderRadius: 5,
+                            order: 2,
+                            datalabels: {
+                                align: 'end',
+                                anchor: 'end',
+                                color: 'rgb(54, 162, 235)',
+                                offset: -5,
+                                textStrokeColor: 'white',
+                                textStrokeWidth: 2,
+                            }
+                        },
+                        {
+                            label: '配合飼料代',
+                            data: costData,
+                            backgroundColor: 'rgb(255, 99, 132)',
+                            borderColor: 'rgb(255, 99, 132)',
+                            borderWidth: 0,
+                            borderRadius: 5,
+                            order: 2,
+                            datalabels: {
+                                align: 'end',
+                                anchor: 'end',
+                                color: 'rgb(255, 99, 132)',
+                                offset: -5,
+                                textStrokeColor: 'white',
+                                textStrokeWidth: 2,
+                            }
+                        },
+                        {
+                            label: '粗利',
+                            data: profitData,
+                            backgroundColor: 'rgb(255, 205, 86)',
+                            borderColor: 'rgb(255, 205, 86)',
+                            borderWidth: 0,
+                            borderRadius: 5,
+                            order: 2,
+                            datalabels: {
+                                align: 'end',
+                                anchor: 'end',
+                                color: 'rgb(255, 205, 86)',
+                                offset: -5,
+                                textStrokeColor: 'white',
+                                textStrokeWidth: 2,
+                            }
+                        },
+                        {
+                            label: '乳飼比',
+                            data: costRevenueRatio,
+                            type: 'line',
+                            borderColor: 'rgb(75, 192, 75)',
+                            borderWidth: 2,
+                            fill: false,
+                            yAxisID: 'y1',
+                            order: 1,
+                            pointBackgroundColor: 'rgb(75, 192, 75)',
+                            pointBorderColor: 'rgb(75, 192, 75)',
+                            pointRadius: 4,
+                            tension: 0.3,
+                            datalabels: {
+                                align: 'top',
+                                offset: 10,
+                                color: 'rgb(75, 192, 75)',
+                                textStrokeColor: 'white',
+                                textStrokeWidth: 2,
+                                formatter: (value) => value.toFixed(2) + '%'
+                            }
                         }
                     ]
                 },
                 options: {
                     responsive: true,
+                    interaction: {
+                        intersect: false,
+                        mode: 'index'
+                    },
+                    plugins: {
+                        datalabels: {
+                            color: 'black',
+                            font: {
+                                weight: 'bold'
+                            },
+                            formatter: function (value, context) {
+                                if (context.dataset.label === '乳飼比') {
+                                    return value.toFixed(2) + '%';
+                                }
+                                return '¥' + value.toLocaleString();
+                            },
+                            clamp: true
+                        },
+                        tooltip: {
+                            callbacks: {
+                                label: function (context) {
+                                    if (context.dataset.label === '乳飼比') {
+                                        return `${context.dataset.label}: ${context.parsed.y.toFixed(1)}%`;
+                                    }
+                                    return `${context.dataset.label}: ¥${context.parsed.y.toLocaleString()}`;
+                                }
+                            }
+                        }
+                    },
                     scales: {
+                        x: {
+                            ticks: {
+                                font: {
+                                    size: 14
+                                }
+                            }
+                        },
                         y: {
-                            title: {
-                                display: true,
-                                text: '累積利益 (円)'
+                            type: 'linear',
+                            display: true,
+                            position: 'left',
+                            min: 0,
+                            ticks: {
+                                callback: function (value) {
+                                    return '¥' + value.toLocaleString();
+                                },
+                                font: {
+                                    size: 14
+                                }
+                            },
+                            // title: {
+                            //     display: true,
+                            //     text: '金額',
+                            //     font: {
+                            //         size: 18 // Bigger axis title
+                            //     }
+                            // }
+                        },
+                        y1: {
+                            type: 'linear',
+                            display: true,
+                            position: 'right',
+                            min: 0,
+                            max: 40,
+                            ticks: {
+                                callback: function (value) {
+                                    return value.toFixed(1) + '%';
+                                },
+                                font: {
+                                    size: 14
+                                }
+                            },
+                            // title: {
+                            //     display: true,
+                            //     text: '乳飼比 (%)',
+                            //     font: {
+                            //         size: 18 // Bigger axis title
+                            //     }
+                            // },
+                            grid: {
+                                drawOnChartArea: false
                             }
                         }
                     }
                 }
             });
         }
+
+        function toggleAdvanced() {
+            const advancedSection = document.getElementById('advancedSection');
+            const toggle = document.querySelector('.advanced-toggle');
+            advancedSection.classList.toggle('show');
+            toggle.classList.toggle('open');
+        }
+
+        function calculateDefaultValue() {
+            const area = parseFloat(document.getElementById('pastureArea').value) || 0;
+            const additionalLand = parseFloat(document.getElementById('additionalLand').value) || 0;
+            const grazingType = document.getElementById('grazingType').value;
+            let fenceCost;
+            let waterSystemCost
+
+            if (grazingType === 'intensive') {
+                fenceCost = 240000 * (area + additionalLand) + 80000;
+                waterSystemCost = 110000 * (area + additionalLand)
+            } else if (grazingType === 'extensive') {
+                waterSystemCost = 110000 * ((area + additionalLand) / 3)
+                if (area + additionalLand <= 3) {
+                    fenceCost = 560000
+                }
+                fenceCost = 560000 + 560000 * 3 / 4 * ((area + additionalLand - 3) / 3)
+            }
+
+            document.getElementById('fenceCost').value = Math.round(fenceCost);
+            document.getElementById('waterSystemCost').value = Math.round(waterSystemCost);
+        }
+
     </script>
 </body>
 
