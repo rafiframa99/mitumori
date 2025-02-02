@@ -913,9 +913,9 @@
                 //     adjustedFeedCost = firstYearFeed - (firstYearFeed * 0.5 / 4 * (year - 1));
                 // }
 
-                const yearlyRevenue = milkCows * adjustedMilkVolume * milkPrice;
-                const yearlyCost = milkCows * adjustedFeedCost * 365;
-                const yearlyProfit = yearlyRevenue - yearlyCost;
+                const yearlyRevenue = Math.round(milkCows * adjustedMilkVolume * milkPrice);
+                const yearlyCost = Math.round(milkCows * adjustedFeedCost * 365);
+                const yearlyProfit = Math.round(yearlyRevenue - yearlyCost);
                 const cumulativeProfit = yearlyValues.length > 0 ? yearlyValues[year - 2].cumulativeProfit + yearlyProfit : yearlyProfit;
                 if (year == 1) {
                     differenceFromFirstYear = 0;
